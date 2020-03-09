@@ -4,4 +4,4 @@ authors = ["Michael Daub <mwdaub@gmail.com>"]
 version = "0.1.0"
 
 [deps]
-Gtk = "4c0ca9eb-093a-5379-98c5-f87ac0bbbf44"
+CSFML = "538df835-4bef-5bfa-b281-4025a4f7e8ff"
