@@ -1,5 +1,7 @@
 using CSFML, CSFML.LibCSFML
 
+include("audio.jl")
+
 const scaleFactor = 4.0
 
 sfColor(val::UInt32) = CSFML.sfColor(((val >> 16) & 0xFF) % UInt8, ((val >> 8) & 0xFF) % UInt8, (val & 0xFF) % UInt8, 0xFF)
@@ -24,10 +26,8 @@ function window(name::String, engine)
   sfWindow_setFramerateLimit(window, 60)
   updatescreen!(window, texture, image, sprite, engine, game)
 
-  #music = sfMusic_createFromFile(joinpath(@__DIR__, "Chrono_Trigger.ogg"))
-  #@assert music != C_NULL
-
-  #sfMusic_play(music)
+  previousSound = C_NULL
+  previousBuffer = C_NULL
 
   event_ref = Ref(sfEvent(sfEvtClosed, ntuple(_ -> UInt32(0), 20)))
 
@@ -48,11 +48,25 @@ function window(name::String, engine)
     # Step a single frame
     totalticks += engine.stepframe!(game)
 
+    # Play audio.
+    samples = engine.audiosamples(game)
+    currentBuffer = sfSoundBuffer_createFromSamples(samples, length(samples), 1, 44100)
+    currentSound = sfSound_create()
+    sfSound_setBuffer(currentSound, currentBuffer)
+    sfSound_play(currentSound)
+
     # Render the screen
     updatescreen!(window, texture, image, sprite, engine, game)
+
+    # Swap out sound buffers
+    sfSound_destroy(previousSound)
+    sfSoundBuffer_destroy(previousBuffer)
+    previousSound = currentSound
+    previousBuffer = currentBuffer
   end
 
-  #sfMusic_destroy(music)
+  sfSound_destroy(previousSound)
+  sfSoundBuffer_destroy(previousBuffer)
   sfSprite_destroy(sprite)
   sfTexture_destroy(texture)
   sfRenderWindow_destroy(window)
